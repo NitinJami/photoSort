@@ -11,6 +11,7 @@ Code Generated in Cursor AI using Claude-3.7-sonnet!
 - Handles filename conflicts by appending a counter
 - Supports both copying and moving files
 - Provides a dry-run mode to preview changes
+- Adds file modification time to EXIF data when original EXIF data is not available
 
 ## Supported File Types
 
@@ -58,13 +59,16 @@ python src/photoSort.py ~/Pictures/Unsorted ~/Pictures/Sorted --verbose
 
 ## Fallback Behavior
 
-If EXIF data cannot be extracted from a file, the script will fall back to using the file's modification time.
+If EXIF data cannot be extracted from a file, the script will:
+1. Fall back to using the file's modification time
+2. For JPEG images, add the modification time to the file's EXIF data to preserve the date information
 
 ## Dependencies
 
 - Pillow: For extracting EXIF data from images
 - exifread: Alternative library for extracting EXIF data
 - ffmpeg-python: For extracting creation date from video files
+- piexif: For adding EXIF data to images
 
 ## License
 

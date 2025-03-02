@@ -36,6 +36,12 @@ try:
 except ImportError:
     HAS_FFMPEG = False
 
+try:
+    import piexif
+    HAS_PIEXIF = True
+except ImportError:
+    HAS_PIEXIF = False
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -58,6 +64,10 @@ def check_dependencies():
     if not HAS_FFMPEG and any(VIDEO_EXTENSIONS):
         logger.warning("ffmpeg-python is not installed. Video date extraction may be limited.")
         logger.warning("Install with: pip install ffmpeg-python")
+    
+    if not HAS_PIEXIF:
+        logger.warning("piexif is not installed. Cannot add EXIF data to images without it.")
+        logger.warning("Install with: pip install piexif")
     
     return True
 
@@ -142,8 +152,48 @@ def get_file_date(file_path):
         mtime = os.path.getmtime(file_path)
         date_taken = datetime.fromtimestamp(mtime)
         logger.debug(f"No metadata date found for {file_path}, using modification time: {date_taken}")
+        
+        # Try to add modification time to EXIF data for images
+        if file_ext in IMAGE_EXTENSIONS and HAS_PIL and HAS_PIEXIF:
+            try:
+                add_date_to_exif(file_path, date_taken)
+                logger.debug(f"Added modification time to EXIF data for {file_path}")
+            except Exception as e:
+                logger.debug(f"Failed to add modification time to EXIF data for {file_path}: {e}")
     
     return date_taken
+
+def add_date_to_exif(file_path, date_taken):
+    """Add date taken to EXIF data of an image file."""
+    if not HAS_PIL or not HAS_PIEXIF:
+        return False
+    
+    try:
+        # Only works with JPEG files
+        if not file_path.lower().endswith(('.jpg', '.jpeg')):
+            return False
+        
+        # Format date string in EXIF format
+        date_str = date_taken.strftime("%Y:%m:%d %H:%M:%S")
+        
+        # Get existing EXIF data or create new
+        try:
+            exif_dict = piexif.load(file_path)
+        except:
+            exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "1st": {}, "thumbnail": None}
+        
+        # Add DateTimeOriginal to EXIF data
+        exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_str
+        exif_dict["0th"][piexif.ImageIFD.DateTime] = date_str
+        
+        # Save the EXIF data back to the file
+        exif_bytes = piexif.dump(exif_dict)
+        piexif.insert(exif_bytes, file_path)
+        
+        return True
+    except Exception as e:
+        logger.debug(f"Error adding EXIF data: {e}")
+        return False
 
 def create_destination_path(dest_root, date_taken, file_path):
     """Create the destination path based on date taken."""
