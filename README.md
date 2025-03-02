@@ -60,6 +60,7 @@ python src/photoSort.py ~/Pictures/Unsorted ~/Pictures/Sorted --verbose
 ## Fallback Behavior
 
 If EXIF data cannot be extracted from a file, the script will:
+
 1. Fall back to using the file's modification time
 2. For JPEG images, add the modification time to the file's EXIF data to preserve the date information
 

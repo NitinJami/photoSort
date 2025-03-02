@@ -84,7 +84,7 @@ def get_date_taken_from_image(file_path):
                         if tag == 'DateTimeOriginal':
                             return datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
         except Exception as e:
-            logger.debug(f"PIL EXIF extraction failed for {file_path}: {e}")
+            logger.error(f"PIL EXIF extraction failed for {file_path}: {e}")
     
     # Try with exifread as fallback
     if HAS_EXIFREAD:
@@ -95,7 +95,7 @@ def get_date_taken_from_image(file_path):
                     date_str = str(tags['EXIF DateTimeOriginal'])
                     return datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
         except Exception as e:
-            logger.debug(f"exifread extraction failed for {file_path}: {e}")
+            logger.error(f"exifread extraction failed for {file_path}: {e}")
     
     return None
 
@@ -129,9 +129,9 @@ def get_date_taken_from_video(file_path):
                         # Try other common formats
                         return datetime.strptime(creation_time, '%Y-%m-%d %H:%M:%S')
                     except ValueError:
-                        logger.debug(f"Could not parse creation time: {creation_time}")
+                        logger.error(f"Could not parse creation time: {creation_time}")
         except Exception as e:
-            logger.debug(f"ffmpeg extraction failed for {file_path}: {e}")
+            logger.error(f"ffmpeg extraction failed for {file_path}: {e}")
     
     return None
 
@@ -151,15 +151,15 @@ def get_file_date(file_path):
     if not date_taken:
         mtime = os.path.getmtime(file_path)
         date_taken = datetime.fromtimestamp(mtime)
-        logger.debug(f"No metadata date found for {file_path}, using modification time: {date_taken}")
+        logger.info(f"No metadata date found for {file_path}, using modification time: {date_taken}")
         
         # Try to add modification time to EXIF data for images
         if file_ext in IMAGE_EXTENSIONS and HAS_PIL and HAS_PIEXIF:
             try:
                 add_date_to_exif(file_path, date_taken)
-                logger.debug(f"Added modification time to EXIF data for {file_path}")
+                logger.info(f"Added modification time to EXIF data for {file_path}")
             except Exception as e:
-                logger.debug(f"Failed to add modification time to EXIF data for {file_path}: {e}")
+                logger.error(f"Failed to add modification time to EXIF data for {file_path}: {e}")
     
     return date_taken
 
@@ -192,7 +192,7 @@ def add_date_to_exif(file_path, date_taken):
         
         return True
     except Exception as e:
-        logger.debug(f"Error adding EXIF data: {e}")
+        logger.error(f"Error adding EXIF data: {e}")
         return False
 
 def create_destination_path(dest_root, date_taken, file_path):
@@ -271,7 +271,7 @@ def process_directory(source_dir, dest_root, dry_run=False, copy_instead_of_move
                     error_count += 1
             else:
                 skipped_count += 1
-                logger.debug(f"Skipping non-media file: {file_path}")
+                logger.info(f"Skipping non-media file: {file_path}")
     
     logger.info(f"Processing complete: {success_count} files processed, {error_count} errors, {skipped_count} skipped")
     return success_count > 0 and error_count == 0
