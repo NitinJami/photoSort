@@ -50,7 +50,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # File types to process
-IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.tiff', '.bmp', '.heic', '.heif'}
+IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.tiff', '.bmp', '.heic', '.heif', '.dng'}
 VIDEO_EXTENSIONS = {'.mp4', '.mov', '.avi', '.mkv', '.wmv', '.m4v', '.3gp', '.flv'}
 MEDIA_EXTENSIONS = IMAGE_EXTENSIONS.union(VIDEO_EXTENSIONS)
 
@@ -234,10 +234,10 @@ def process_file(file_path, dest_root, dry_run=False, copy_instead_of_move=False
             logger.info(f"Would {'copy' if copy_instead_of_move else 'move'} {file_path} to {dest_path}")
         else:
             if copy_instead_of_move:
-                logger.info(f"Copying {file_path} to {dest_path}")
+                logger.debug(f"Copying {file_path} to {dest_path}")
                 shutil.copy2(file_path, dest_path)
             else:
-                logger.info(f"Moving {file_path} to {dest_path}")
+                logger.debug(f"Moving {file_path} to {dest_path}")
                 shutil.move(file_path, dest_path)
         
         return True

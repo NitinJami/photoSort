@@ -40,6 +40,9 @@ pyvenv.cfg
 .Trashes
 ehthumbs.db
 Thumbs.db
+ffmpeg.exe
+ffprobe.exe
+ffplay.exe
 
 # Test directories
 test_source/
